@@ -1,22 +1,53 @@
 import os
 from PyQt5.QtGui import QPixmap
-from PIL import Image
+from PIL import Image, ImageFilter
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QListWidget, QWidget, QApplication, QFileDialog
 )
 
+STYLES = '''
+QWidget{
+    background-color:rgb(169, 181, 223);
+}
+QPushButton{
+    background-color:rgba(45, 51, 107, 150);
+    color:rgb(169, 181, 223);
+    border-radius:10px;
+    height:30px;
+    font-size:15px;
+}
+QLabel{
+    color:rgba(45, 51, 107, 150);
+    font-size:20px;
+}
+QListWidget{
+    color:rgb(45, 51, 107);
+    background-color:rgba(45, 51, 107, 75);
+    border-radius:10px;
+    font-size:20px;
+}
+QPushButton#folder{
+    background-color:rgba(45, 51, 107, 200);
+    color:rgb(238, 102, 166);
+}
+'''
+
 app = QApplication([])
+app.setStyleSheet(STYLES)
 win = QWidget()
 win.setWindowTitle("Easy editor")
 win.resize(700, 500)
 
 btn_folder = QPushButton('Папка')
+btn_folder.setObjectName('folder')
 btn_left = QPushButton('Ліво')
 btn_right = QPushButton('Право')
 btn_mirror = QPushButton('Дзеркало')
 btn_sharp = QPushButton('Різкість')
 btn_bw = QPushButton('Ч/Б')
+btn_back = QPushButton('Назад')
+btn_blur = QPushButton('Розмити')
 
 lbl_image = QLabel("Тут буде картинка")
 
@@ -30,11 +61,13 @@ hlayout = QHBoxLayout()
 hlayout.addWidget(btn_left)
 hlayout.addWidget(btn_right)
 hlayout.addWidget(btn_mirror)
+hlayout.addWidget(btn_back)
 hlayout.addWidget(btn_sharp)
 hlayout.addWidget(btn_bw)
+hlayout.addWidget(btn_blur)
 
 v1layout = QVBoxLayout()
-v1layout.addWidget(lbl_image)
+v1layout.addWidget(lbl_image, )
 v1layout.addLayout(hlayout)
 
 mainLay = QHBoxLayout()
@@ -107,7 +140,38 @@ class ImageProcessor():
         image_path = os.path.join(self.dir, self.save_dir, self.filename)
         self.showImage(image_path)
 
+    def flip_left(self):
+        self.image = self.image.transpose(Image.ROTATE_90)
+        self.saveImage()
+        image_path = os.path.join(self.dir, self.save_dir, self.filename)
+        self.showImage(image_path)
 
+    def flip_right(self):
+        self.image = self.image.transpose(Image.ROTATE_270)
+        self.saveImage()
+        image_path = os.path.join(self.dir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    def mirror(self):
+        self.image = self.image.transpose(Image.FLIP_LEFT_RIGHT)
+        self.saveImage()
+        image_path = os.path.join(self.dir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    def sharpen(self):
+        self.image = self.image.filter(ImageFilter.SHARPEN)
+        self.saveImage()
+        image_path = os.path.join(self.dir, self.save_dir, self.filename)
+        self.showImage(image_path)
+
+    def back(self):
+        showChosenImage()
+
+    def blur(self):
+        self.image = self.image.filter(ImageFilter.BLUR)
+        self.saveImage()
+        image_path = os.path.join(self.dir, self.save_dir, self.filename)
+        self.showImage(image_path)
 
 def showChosenImage():
     if list_images.currentRow() >= 0:
@@ -119,6 +183,12 @@ def showChosenImage():
 workimage = ImageProcessor()
 list_images.itemClicked.connect(showChosenImage)
 btn_bw.clicked.connect(workimage.do_bw)
+btn_mirror.clicked.connect(workimage.mirror)
+btn_left.clicked.connect(workimage.flip_left)
+btn_right.clicked.connect(workimage.flip_right)
+btn_sharp.clicked.connect(workimage.sharpen)
+btn_back.clicked.connect(workimage.back)
+btn_blur.clicked.connect(workimage.blur)
 
 app.exec_()
 
